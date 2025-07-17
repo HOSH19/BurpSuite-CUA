@@ -108,9 +108,9 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
       }),
     );
 
-    logger.info(
-      `[GUIAgent] run:\nsystem prompt: ${this.systemPrompt},\nmodel version: ${this.uiTarsVersion},\nmodel config: ${JSON.stringify(this.model)}`,
-    );
+    // logger.info(
+    //   `[GUIAgent] run:\nsystem prompt: ${this.systemPrompt},\nmodel version: ${this.uiTarsVersion},\nmodel config: ${JSON.stringify(this.model)}`,
+    // );
 
     let loopCnt = 0;
     let snapshotErrCnt = 0;
@@ -307,14 +307,14 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
         totalTokens += costTokens || 0;
         totalTime += costTime || 0;
 
-        logger.info(
-          `[GUIAgent] consumes: >>> costTime: ${costTime}, costTokens: ${costTokens} <<<`,
-        );
-        logger.info('[GUIAgent] Response:', prediction);
-        logger.info(
-          '[GUIAgent] Parsed Predictions:',
-          JSON.stringify(parsedPredictions),
-        );
+        // logger.info(
+        //   `[GUIAgent] consumes: >>> costTime: ${costTime}, costTokens: ${costTokens} <<<`,
+        // );
+        // logger.info('[GUIAgent] Response:', prediction);
+        // logger.info(
+        //   '[GUIAgent] Parsed Predictions:',
+        //   JSON.stringify(parsedPredictions),
+        // );
 
         if (!prediction) {
           logger.error('[GUIAgent] Response Empty:', prediction);
@@ -420,6 +420,9 @@ export class GUIAgent<T extends Operator> extends BaseGUIAgent<
             break;
           }
         }
+
+        // Post-action screenshot removed - model verifies actions using next loop's main screenshot
+        // This is more efficient and the model can intelligently verify if previous actions worked
 
         if (this.config.loopIntervalInMs && this.config.loopIntervalInMs > 0) {
           logger.info(

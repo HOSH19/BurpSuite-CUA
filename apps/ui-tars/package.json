@@ -28,6 +28,9 @@
     "build:deps": "pnpm --filter \"!ui-tars-desktop,ui-tars-desktop...\" build && cd packages/visualizer && pnpm install --ignore-workspace",
     "build:dist": "cross-env NODE_ENV=production electron-vite build",
     "build": "npm run clean && npm run typecheck && cross-env NODE_ENV=production electron-vite build && electron-forge make --enable-logging",
+    "build:local": "npm run clean && npm run typecheck && cross-env NODE_ENV=production INITIAL_ROUTE=/local electron-vite build && electron-forge make --enable-logging",
+    "dev:local": "cross-env INITIAL_ROUTE=/local electron-vite dev",
+    "dev:local:w": "cross-env INITIAL_ROUTE=/local electron-vite dev -w",
     "make": "electron-forge make",
     "publish:mac-x64": "npm run build && electron-forge publish --arch=x64 --platform=darwin",
     "publish:mac-arm64": "npm run build && electron-forge publish --arch=arm64 --platform=darwin",
@@ -59,7 +62,9 @@
   "dependencies": {
     "@computer-use/node-mac-permissions": "2.2.2",
     "sharp": "0.33.3",
-    "jose": "^6.0.11"
+    "jose": "^6.0.11",
+    "chromadb": "^1.8.0",
+    "@xenova/transformers": "^2.15.0"
   },
   "devDependencies": {
     "semver": "7.7.2",

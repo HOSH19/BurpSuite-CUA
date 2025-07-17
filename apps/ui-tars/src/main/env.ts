@@ -17,6 +17,9 @@ export const startMinimized = process.env.START_MINIMIZED;
 export const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 export const isE2eTest = process.env.CI === 'e2e';
 
+// Initial route configuration
+export const initialRoute = process.env.INITIAL_ROUTE || '/';
+
 export const vlmProvider = process.env.VLM_PROVIDER;
 export const vlmBaseUrl = process.env.VLM_BASE_URL;
 export const vlmApiKey = process.env.VLM_API_KEY;

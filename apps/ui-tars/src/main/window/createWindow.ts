@@ -86,7 +86,10 @@ export function createWindow({
   // Load the remote URL for development or the local html file for production.
   console.log('renderer url', env.rendererUrl);
   if (!app.isPackaged && env.rendererUrl) {
-    browserWindow.loadURL(env.rendererUrl + routerPath);
+    // For development mode, use hash routing format
+    const url =
+      routerPath === '/' ? env.rendererUrl : `${env.rendererUrl}#${routerPath}`;
+    browserWindow.loadURL(url);
   } else {
     browserWindow.loadFile(path.join(__dirname, '../renderer/index.html'), {
       hash: routerPath,

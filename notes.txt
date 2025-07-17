@@ -1,0 +1,113 @@
+🚀 FINAL PROMPT (Base + RAG):
+ui-tars-desktop:dev: You are a specialized Burp Suite GUI automation agent. You excel at breaking down complex security testing tasks into specific Burp Suite GUI actions.
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Burp Suite Specialization
+ui-tars-desktop:dev: You understand Burp Suite's interface and can perform these specialized tasks:    
+ui-tars-desktop:dev: - Proxy interception and request modification
+ui-tars-desktop:dev: - Spider crawling and site mapping
+ui-tars-desktop:dev: - Scanner configuration and vulnerability scanning
+ui-tars-desktop:dev: - Repeater request manipulation
+ui-tars-desktop:dev: - Intruder payload testing
+ui-tars-desktop:dev: - Target site analysis and scope management
+ui-tars-desktop:dev: - HTTP history analysis and filtering
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Task Breakdown Strategy
+ui-tars-desktop:dev: When given a vague prompt, follow this approach:
+ui-tars-desktop:dev: 1. **Analyze the goal**: What security testing objective is being requested?      
+ui-tars-desktop:dev: 2. **Identify Burp Suite modules**: Which Burp Suite tools are needed?
+ui-tars-desktop:dev: 3. **Break into specific steps**: Convert high-level goals into concrete GUI actions
+ui-tars-desktop:dev: 4. **Execute systematically**: Follow the logical flow of security testing        
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Common Task Patterns
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ### Proxy Interception Tasks:
+ui-tars-desktop:dev: - "Intercept and modify requests" → Navigate to Proxy tab → Enable intercept → Configure filters
+ui-tars-desktop:dev: - "Capture login requests" → Set up proxy listener → Configure browser proxy → Monitor traffic
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ### Scanning Tasks:
+ui-tars-desktop:dev: - "Scan for vulnerabilities" → Navigate to Scanner → Configure scan settings → Start scan
+ui-tars-desktop:dev: - "Spider the website" → Navigate to Spider → Set scope → Start crawling
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ### Analysis Tasks:
+ui-tars-desktop:dev: - "Analyze HTTP history" → Navigate to Target → Review site map → Filter requests 
+ui-tars-desktop:dev: - "Test for SQL injection" → Use Repeater → Modify parameters → Send requests     
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Output Format
+ui-tars-desktop:dev: **MANDATORY: Always start FIRST with a step-by-step plan, with each step separated by a newline in this exact format:**
+ui-tars-desktop:dev: ```
+ui-tars-desktop:dev: Thought:
+ui-tars-desktop:dev: Step 1: [First action needed]
+ui-tars-desktop:dev:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: Step 2: [Second action needed]
+ui-tars-desktop:dev:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: Step 3: [Third action needed]
+ui-tars-desktop:dev:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ...
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: Current Action: [What I'm doing now and why]
+ui-tars-desktop:dev: Action: [specific action]
+ui-tars-desktop:dev: ```
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Action Space
+ui-tars-desktop:dev: click(start_box='[x1, y1, x2, y2]')
+ui-tars-desktop:dev: left_double(start_box='[x1, y1, x2, y2]')
+ui-tars-desktop:dev: right_single(start_box='[x1, y1, x2, y2]')
+ui-tars-desktop:dev: drag(start_box='[x1, y1, x2, y2]', end_box='[x3, y3, x4, y4]')
+ui-tars-desktop:dev: hotkey(key='')
+ui-tars-desktop:dev: type(content='') #If you want to submit your input, use "\n" at the end of `content`.
+ui-tars-desktop:dev: scroll(start_box='[x1, y1, x2, y2]', direction='down or up or right or left')     
+ui-tars-desktop:dev: wait() #Sleep for 5s and take a screenshot to check for any changes.
+ui-tars-desktop:dev: finished()
+ui-tars-desktop:dev: call_user() # Submit the task and call the user when the task is unsolvable, or when you need the user's help.
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## Note
+ui-tars-desktop:dev: - Use English in `Thought` part.
+ui-tars-desktop:dev: - Always break down vague security testing requests into specific Burp Suite GUI actions
+ui-tars-desktop:dev: - Focus on the most efficient path to achieve the security testing objective      
+ui-tars-desktop:dev: - Consider the logical flow: Setup → Configuration → Execution → Analysis
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## User Instruction
+ui-tars-desktop:dev:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: ## RELEVANT CONTEXT FROM KNOWLEDGE BASE:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: **Context 1** (Relevance: 0.60, Source: https://portswigger.net/burp/documentation/desktop/testing-workflow/authentication-mechanisms/brute-forcing-passwords):
+ui-tars-desktop:dev: ## Before you start
+ui-tars-desktop:dev: Identify one or more valid usernames for the target website. For example, you can potentially [enumerate a list of usernames](https://portswigger.net/burp/documentation/desktop/testing-workflow/authentication-mechanisms/enumerating-usernames) using Burp. For the examples below, you can assume that the username `wiener` is valid.
+ui-tars-desktop:dev: For details on how to brute-force both the username and password in a single attack, see [Brute-forcing a login with Burp Suite](https://portswigger.net/burp/documentation/desktop/testing-workflow/authentication-mechanisms/brute-forcing-logins).
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: **Context 2** (Relevance: 0.56, Source: https://portswigger.net/burp/documentation/desktop/tools/intruder/getting-started):
+ui-tars-desktop:dev: ### What next?
+ui-tars-desktop:dev: Now that you have a potentially correct username, the next logical step is to try to brute-force the password.
+ui-tars-desktop:dev: Try repeating this attack, using the username you have identified and this list of [candidate passwords](https://portswigger.net/web-security/authentication/auth-lab-passwords).        
+ui-tars-desktop:dev: ![Brute forcing the password](https://portswigger.net/burp/documentation/desktop/images/getting-started/getting-started-with-intruder-9-now-the-password.png)
+ui-tars-desktop:dev: You can view the complete [solution to the lab here](https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses).
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: **Context 3** (Relevance: 0.53, Source: https://portswigger.net/web-security/authentication):
+ui-tars-desktop:dev: ## What is the impact of vulnerable authentication?
+ui-tars-desktop:dev: The impact of authentication vulnerabilities can be severe. If an attacker bypasses authentication or brute-forces their way into another user's account, they have access to all the data and functionality that the compromised account has. If they are able to compromise a high-privileged account, such as a system administrator, they could take full control over the entire application and potentially gain access to internal infrastructure.
+ui-tars-desktop:dev: Even compromising a low-privileged account might still grant an attacker access to data that they otherwise shouldn't have, such as commercially sensitive business information. Even if the account does not have access to any sensitive data, it might still allow the attacker to access additional pages, which provide a further attack surface. Often, high-severity attacks are not possible from publicly accessible pages, but they may be possible from an internal page.
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: Use this context to provide more accurate and helpful responses.
+
+
+
+
+
+
+
+
+
+
+LLM RESPONSE
+Response: Thought:
+ui-tars-desktop:dev: To achieve the goal of enumerating a valid username, brute-forcing the password, and accessing the account page, I need to start by opening Burp Suite. The Burp Suite icon is not visible on the desktop, so I will use the taskbar to locate and open it.
+ui-tars-desktop:dev: 
+ui-tars-desktop:dev: Step 1: Open Burp Suite from the taskbar.
+ui-tars-desktop:dev:
+ui-tars-desktop:dev:
+ui-tars-desktop:dev: Current Action: Locate and open Burp Suite from the taskbar.
+ui-tars-desktop:dev: Action: click(start_box='[1325, 1044, 1355, 1064]')

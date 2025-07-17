@@ -28,6 +28,7 @@ import {
 import ThoughtChain from '../../components/ThoughtChain';
 import { api } from '../../api';
 import ImageGallery from '../../components/ImageGallery';
+import { Operator } from '@main/store/types';
 import { PredictionParsed, StatusEnum } from '@ui-tars/shared/types';
 import { RouterState } from '../../typings';
 import ChatInput from '../../components/ChatInput';
@@ -47,7 +48,7 @@ const getFinishedContent = (predictionParsed?: PredictionParsed[]) =>
   )?.action_inputs?.content as string | undefined;
 
 const LocalOperator = () => {
-  const state = useLocation().state as RouterState;
+  const locationState = useLocation().state as RouterState | null;
   const navigate = useNavigate();
   const { setOpen } = useSidebar();
 
@@ -70,30 +71,78 @@ const LocalOperator = () => {
   const [localOpen, setLocalOpen] = useState(false);
 
   useEffect(() => {
-    const update = async () => {
-      if (state.sessionId) {
-        await setActiveSession(state.sessionId);
-        setInitId(state.sessionId);
+    const initializeSession = async () => {
+      if (locationState?.sessionId) {
+        // Use existing session from router state
+        console.log(
+          '🔍 SESSION DEBUG: Using existing session:',
+          locationState.sessionId,
+        );
+        await setActiveSession(locationState.sessionId);
+        setInitId(locationState.sessionId);
+      } else {
+        // No router state provided - create a new session (direct navigation)
+        console.log(
+          '🔍 SESSION DEBUG: Creating new session for direct navigation',
+        );
+        const newSession = await createSession('New Session', {
+          operator: Operator.LocalComputer,
+        });
+        if (newSession) {
+          console.log('🔍 SESSION DEBUG: New session created:', newSession.id);
+          await setActiveSession(newSession.id);
+          setInitId(newSession.id);
+
+          // Ensure the session is properly set in the store
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          console.log('🔍 SESSION DEBUG: Session initialization complete');
+        }
       }
     };
-    update();
-    setOpen(false);
-  }, [state.sessionId]);
+
+    initializeSession();
+  }, [locationState, setActiveSession, createSession]);
 
   useEffect(() => {
-    if (initId !== state.sessionId) {
+    console.log(
+      '🔍 SYNC DEBUG: Message sync useEffect - initId:',
+      initId,
+      'locationState?.sessionId:',
+      locationState?.sessionId,
+    );
+    if (initId !== locationState?.sessionId) {
+      console.log('🔍 SYNC DEBUG: Session ID mismatch, skipping sync');
       return;
     }
 
     if (
-      state.sessionId &&
+      locationState?.sessionId &&
       currentSessionId &&
-      state.sessionId !== currentSessionId
+      locationState.sessionId !== currentSessionId
     ) {
+      console.log(
+        '🔍 SYNC DEBUG: Session ID mismatch with current session, skipping sync',
+      );
       return;
     }
 
     if (messages.length) {
+      console.log(
+        '🔍 SYNC DEBUG: Synchronizing messages - messages.length:',
+        messages.length,
+        'chatMessages.length:',
+        chatMessages.length,
+      );
+
+      // Check for RAG context in messages
+      messages.forEach((msg, idx) => {
+        if (msg.ragContext) {
+          console.log(
+            `🔍 SYNC DEBUG: Message ${idx} HAS ragContext (${msg.ragContext.length} items)`,
+          );
+        }
+      });
+
       const existingMessagesSet = new Set(
         chatMessages.map(
           (msg) => `${msg.value}-${msg.from}-${msg.timing?.start}`,
@@ -105,16 +154,29 @@ const LocalOperator = () => {
             `${msg.value}-${msg.from}-${msg.timing?.start}`,
           ),
       );
+
+      console.log('🔍 SYNC DEBUG: New messages to sync:', newMessages.length);
+      newMessages.forEach((msg, idx) => {
+        if (msg.ragContext) {
+          console.log(
+            `🔍 SYNC DEBUG: New message ${idx} HAS ragContext (${msg.ragContext.length} items)`,
+          );
+        } else {
+          console.log(`🔍 SYNC DEBUG: New message ${idx} has NO ragContext`);
+        }
+      });
+
       const allMessages = [...chatMessages, ...newMessages];
 
-      updateMessages(state.sessionId, allMessages);
+      updateMessages(locationState?.sessionId || initId, allMessages);
     }
   }, [
     initId,
-    state.sessionId,
+    locationState?.sessionId,
     currentSessionId,
     chatMessages.length,
     messages.length,
+    updateMessages,
   ]);
 
   useEffect(() => {
@@ -139,12 +201,12 @@ const LocalOperator = () => {
 
   const onNewChat = useCallback(async () => {
     const session = await createSession('New Session', {
-      operator: state.operator,
+      operator: locationState?.operator || Operator.LocalComputer,
     });
 
     navigate('/local', {
       state: {
-        operator: state.operator,
+        operator: locationState?.operator || Operator.LocalComputer,
         sessionId: session?.id,
         from: 'new',
       },
@@ -253,6 +315,7 @@ const LocalOperator = () => {
                     steps={predictionParsed}
                     hasSomImage={!!screenshotBase64WithElementMarker}
                     onClick={() => handleImageSelect(idx)}
+                    ragContext={message.ragContext}
                   />
                 ) : null}
 
@@ -271,7 +334,7 @@ const LocalOperator = () => {
   return (
     <div className="flex flex-col w-full h-full">
       <NavHeader
-        title={state.operator}
+        title={locationState?.operator || Operator.LocalComputer}
         onBack={handleBack}
         docUrl="https://github.com/bytedance/UI-TARS-desktop/"
       ></NavHeader>
@@ -290,8 +353,8 @@ const LocalOperator = () => {
           {renderChatList()}
           <ChatInput
             disabled={false}
-            operator={state.operator}
-            sessionId={state.sessionId}
+            operator={locationState?.operator || Operator.LocalComputer}
+            sessionId={locationState?.sessionId || initId}
             checkBeforeRun={checkVLM}
           />
         </Card>

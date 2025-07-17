@@ -200,10 +200,31 @@ export const useSessionStore = create<SessionState>((set, get) => ({
 
   updateMessages: async (sessionId, messages) => {
     try {
+      // Debug: Check messages before saving to chatManager
+      // console.log('🔍 RAG DEBUG: updateMessages called with', messages.length, 'messages');
+      // messages.forEach((msg, idx) => {
+      //   if (msg.ragContext) {
+      //     // console.log(`🔍 RAG DEBUG: Input message ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+      //   } else {
+      //     // console.log(`🔍 RAG DEBUG: Input message ${idx} has NO ragContext`);
+      //   }
+      // });
+
       const updatedMessages = await chatManager.updateSessionMessages(
         sessionId,
         messages,
       );
+
+      // Debug: Check messages after chatManager
+      // console.log('🔍 RAG DEBUG: updateMessages returned', updatedMessages.length, 'messages');
+      // updatedMessages.forEach((msg, idx) => {
+      //   if (msg.ragContext) {
+      //     console.log(`🔍 RAG DEBUG: Updated message ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+      //   } else {
+      //     console.log(`🔍 RAG DEBUG: Updated message ${idx} has NO ragContext`);
+      //   }
+      // });
+
       set(() => ({
         chatMessages: updatedMessages,
       }));

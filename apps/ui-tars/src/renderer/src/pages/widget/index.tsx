@@ -11,6 +11,8 @@ import {
   Square,
   Loader,
   MousePointerClick,
+  Database,
+  FileText,
 } from 'lucide-react';
 import { ActionIconMap } from '@renderer/const/actions';
 import { useSetting } from '@renderer/hooks/useSetting';
@@ -36,6 +38,8 @@ interface Action {
   reflection?: string;
   thought?: string;
   query?: string;
+  steps?: string[]; // Add steps property
+  currentAction?: string; // Add currentAction property
 }
 
 const getOperatorIcon = (type: string) => {
@@ -67,6 +71,42 @@ const Widget = () => {
   const currentOperator = settings.operator || 'nutjs';
 
   const [actions, setActions] = useState<Action[]>([]);
+  const [ragContext, setRagContext] = useState<any[]>([]);
+
+  // Add utility function to parse steps from thought content
+  const parseStepsFromThought = (thought: string) => {
+    if (!thought)
+      return { steps: [], currentAction: '', remainingThought: thought };
+
+    // Extract individual steps using regex
+    const stepMatches = thought.match(/Step \d+: [^\n]+/g) || [];
+    const steps = stepMatches.map((step) =>
+      step.replace(/Step \d+: /, '').trim(),
+    );
+
+    // Extract current action
+    const currentActionMatch = thought.match(/Current Action: ([^\n]+)/);
+    const currentAction = currentActionMatch
+      ? currentActionMatch[1].trim()
+      : '';
+
+    // Get remaining thought content (everything after current action or steps)
+    let remainingThought = thought;
+    if (currentActionMatch) {
+      remainingThought = thought
+        .substring(
+          thought.indexOf(currentActionMatch[0]) + currentActionMatch[0].length,
+        )
+        .trim();
+    } else if (stepMatches.length > 0) {
+      // If no current action but has steps, get content after last step
+      const lastStep = stepMatches[stepMatches.length - 1];
+      const lastStepIndex = thought.indexOf(lastStep) + lastStep.length;
+      remainingThought = thought.substring(lastStepIndex).trim();
+    }
+
+    return { steps, currentAction, remainingThought };
+  };
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -75,6 +115,14 @@ const Widget = () => {
 
     if (!lastMessage) {
       return;
+    }
+
+    // Extract RAG context from the last message
+    if (lastMessage.ragContext) {
+      setRagContext(lastMessage.ragContext);
+      // console.log('🔍 RAG DEBUG: Widget extracted ragContext:', lastMessage.ragContext.length, 'contexts');
+    } else {
+      setRagContext([]);
     }
 
     if (lastMessage.from === 'human') {
@@ -103,13 +151,19 @@ const Widget = () => {
           .filter(Boolean)
           .join(' ');
 
+        // Parse steps from thought content
+        const { steps, currentAction, remainingThought } =
+          parseStepsFromThought(item.thought || '');
+
         return {
           action: 'Action',
           type: item.action_type,
           cost: lastMessage.timing?.cost,
           input: input || undefined,
           reflection: item.reflection || '',
-          thought: item.thought,
+          thought: remainingThought, // Use remaining thought content
+          steps: steps, // Add parsed steps
+          currentAction: currentAction, // Add current action
         };
       }) || [];
 
@@ -160,6 +214,36 @@ const Widget = () => {
 
       {!!errorMsg && <div>{errorMsg}</div>}
 
+      {/* RAG Context Display */}
+      {ragContext.length > 0 && !errorMsg && (
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">
+              Knowledge Base Context
+            </span>
+          </div>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {ragContext.map((ctx, index) => (
+              <div key={index} className="p-2 bg-white rounded border">
+                <div className="flex items-center gap-1 mb-1">
+                  <FileText className="h-3 w-3 text-gray-500" />
+                  <span className="text-xs text-gray-600 truncate">
+                    {ctx.source || 'Unknown'}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mb-1">
+                  Relevance: {ctx.relevance?.toFixed(2) || 'N/A'}
+                </div>
+                <div className="text-xs text-gray-700 break-all">
+                  {ctx.context}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!!actions.length && !errorMsg && (
         <div className="mt-4 max-h-70 overflow-scroll hide_scroll_bar">
           {actions.map((action, idx) => {
@@ -195,8 +279,35 @@ const Widget = () => {
                 {!!action.reflection && (
                   <>
                     <div className="text-lg font-medium mt-2">Reflection</div>
-                    <div className="text-gray-500 text-sm break-all">
+                    <div className="text-gray-500 text-sm break-all whitespace-pre-wrap">
                       {action.reflection}
+                    </div>
+                  </>
+                )}
+                {/* Steps */}
+                {!!action.steps && action.steps.length > 0 && (
+                  <>
+                    <div className="text-lg font-medium mt-2">Plan</div>
+                    <div className="text-gray-500 text-sm">
+                      {action.steps.map((step, stepIndex) => (
+                        <div key={stepIndex} className="mb-1">
+                          <span className="font-medium">
+                            Step {stepIndex + 1}:
+                          </span>{' '}
+                          {step}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {/* Current Action */}
+                {!!action.currentAction && (
+                  <>
+                    <div className="text-lg font-medium mt-2">
+                      Current Action
+                    </div>
+                    <div className="text-gray-500 text-sm break-all whitespace-pre-wrap">
+                      {action.currentAction}
                     </div>
                   </>
                 )}
@@ -204,7 +315,7 @@ const Widget = () => {
                 {!!action.thought && (
                   <>
                     <div className="text-lg font-medium mt-2">Thought</div>
-                    <div className="text-gray-500 text-sm break-all mb-4">
+                    <div className="text-gray-500 text-sm break-all mb-4 whitespace-pre-wrap">
                       {action.thought}
                     </div>
                   </>
@@ -213,7 +324,7 @@ const Widget = () => {
                 {!!action.query && (
                   <>
                     <div className="text-lg font-medium">Human Query</div>
-                    <div className="text-gray-500 text-sm break-all">
+                    <div className="text-gray-500 text-sm break-all whitespace-pre-wrap">
                       {action.query}
                     </div>
                   </>

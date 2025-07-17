@@ -26,6 +26,11 @@ export interface Conversation extends Message {
     scaleFactor?: number;
   };
   predictionParsed?: PredictionParsed[];
+  ragContext?: Array<{
+    context: string;
+    relevance: number;
+    source?: string;
+  }>;
 }
 
 /**

@@ -4,29 +4,23 @@
  */
 import { BrowserWindow } from 'electron';
 
-import { logger } from '@main/logger';
 import * as env from '@main/env';
-
+import { logger } from '@main/logger';
 import { createWindow } from './createWindow';
 
 let mainWindow: BrowserWindow | null = null;
 
-export function showInactive() {
-  if (mainWindow) {
-    // eslint-disable-next-line no-unused-expressions
-    mainWindow.showInactive();
-  }
-}
+export const getMainWindow = () => {
+  return mainWindow;
+};
 
-export function show() {
-  if (mainWindow) {
-    mainWindow.show();
-  }
-}
+export const setMainWindow = (window: BrowserWindow | null) => {
+  mainWindow = window;
+};
 
 export function createMainWindow() {
   mainWindow = createWindow({
-    routerPath: '/',
+    routerPath: env.initialRoute,
     width: 1200,
     height: 700,
     alwaysOnTop: false,
@@ -54,6 +48,19 @@ export function createMainWindow() {
   });
 
   return mainWindow;
+}
+
+export function showInactive() {
+  if (mainWindow) {
+    // eslint-disable-next-line no-unused-expressions
+    mainWindow.showInactive();
+  }
+}
+
+export function show() {
+  if (mainWindow) {
+    mainWindow.show();
+  }
 }
 
 export function setContentProtection(enable: boolean) {

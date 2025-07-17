@@ -36,6 +36,8 @@ import {
 
 import computerUseImg from '@resources/home_img/computer_use.png?url';
 import browserUseImg from '@resources/home_img/browser_use.png?url';
+import logoVector from '@resources/logo-vector.png?url';
+import burpsuiteLogo from '@resources/burpsuite-logo.png?url';
 import { sleep } from '@ui-tars/shared/utils';
 import { FreeTrialDialog } from '../../components/AlertDialog/freeTrialDialog';
 import { DragArea } from '../../components/Common/drag';
@@ -269,41 +271,66 @@ const Home = () => {
       <DragArea></DragArea>
       <div className="w-full h-full flex flex-col items-center justify-center">
         <h1 className="text-2xl font-semibold mt-1 mb-12">
-          Welcome to UI-TARS Desktop
+          {/* Welcome to UI-TARS Desktop */}
+          Welcome to Burpsuite Computer Use Agent
         </h1>
         <div className="flex gap-6">
           <Card className="w-[400px] py-5">
             <CardHeader className="px-5">
-              <CardTitle>Computer Operator</CardTitle>
+              <CardTitle>Burpsuite Computer Use Agent</CardTitle>
               <CardDescription>
-                Use the UI-TARS model to automate and complete tasks directly on
-                your computer with AI assistance.
+                Use the any OpenRouter model to automate Burpsuite tasks through
+                Computer Use Vision Agents.
               </CardDescription>
             </CardHeader>
             <CardContent className="px-5">
-              <img
-                src={computerUseImg}
-                alt=""
-                className="w-full h-full aspect-video object-fill rounded-lg"
-              />
+              <div className="w-full h-full aspect-video rounded-lg flex items-center justify-center">
+                <div className="flex items-center gap-8">
+                  <div className="flex flex-col items-center">
+                    <div className="w-24 h-24 flex items-center justify-center">
+                      <img
+                        src={logoVector}
+                        alt="UI-TARS"
+                        className="w-20 h-20"
+                      />
+                    </div>
+                    <span className="text-base font-medium text-gray-700 mt-3">
+                      Bytedance UI-TARS
+                    </span>
+                  </div>
+                  <div className="text-3xl font-bold text-gray-400">×</div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-24 h-24 flex items-center justify-center">
+                      <img
+                        src={burpsuiteLogo}
+                        alt="Burpsuite"
+                        className="w-20 h-20"
+                      />
+                    </div>
+                    <span className="text-base font-medium text-gray-700 mt-3">
+                      Burpsuite
+                    </span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
             <CardFooter className="gap-3 px-5 flex justify-between">
               {/* {renderRemoteComputerButton()} */}
-              <FreeButton
+              {/* <FreeButton
                 onClick={() => handleRemotePress(Operator.RemoteComputer)}
               >
                 Use Remote Computer
-              </FreeButton>
+              </FreeButton> */}
               <Button
                 onClick={() => handleLocalPress(Operator.LocalComputer)}
                 variant="secondary"
                 className="flex-1"
               >
-                Use Local Computer
+                Use Burpsuite
               </Button>
             </CardFooter>
           </Card>
-          <Card className="w-[400px] py-5">
+          {/* <Card className="w-[400px] py-5">
             <CardHeader className="px-5">
               <CardTitle>Browser Operator</CardTitle>
               <CardDescription>
@@ -319,7 +346,6 @@ const Home = () => {
               />
             </CardContent>
             <CardFooter className="gap-3 px-5 flex justify-between">
-              {/* {renderRemoteBrowserButton()} */}
               <FreeButton
                 onClick={() => handleRemotePress(Operator.RemoteBrowser)}
               >
@@ -333,7 +359,7 @@ const Home = () => {
                 Use Local Browser
               </Button>
             </CardFooter>
-          </Card>
+          </Card> */}
         </div>
         <LocalSettingsDialog
           isOpen={localConfig.open}

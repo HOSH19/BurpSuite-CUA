@@ -10,6 +10,8 @@
     "commit": "oco",
     "bootstrap": "pnpm i",
     "dev:ui-tars": "turbo run ui-tars-desktop#dev",
+    "dev:ui-tars-local": "cross-env INITIAL_ROUTE=/local pnpm --filter ui-tars-desktop dev:local",
+    "build:ui-tars-local": "cross-env INITIAL_ROUTE=/local pnpm --filter ui-tars-desktop build:local",
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "test": "vitest",

@@ -2,12 +2,13 @@
  * Copyright (c) 2025 Bytedance, Inc. and its affiliates.
  * SPDX-License-Identifier: Apache-2.0
  */
-import { MousePointerClick } from 'lucide-react';
+import { MousePointerClick, Database, FileText } from 'lucide-react';
 import { Button } from '@renderer/components/ui/button';
 
 import { PredictionParsed } from '@ui-tars/shared/types';
 import { ActionIconMap } from '@renderer/const/actions';
 import { Markdown } from '../markdown';
+import { RAGContextData } from '../RAGContext';
 
 interface ThoughtStepCardProps {
   step: PredictionParsed;
@@ -56,18 +57,55 @@ interface ThoughtChainProps {
   hasSomImage: boolean;
   somImageHighlighted?: boolean;
   onClick?: () => void;
+  ragContext?: RAGContextData[];
 }
 
 export default function ThoughtChain({
   steps,
   onClick,
   hasSomImage,
+  ragContext,
 }: ThoughtChainProps) {
   const reflectionStep = steps?.find((step) => step.reflection);
   const thoughtStep = steps?.find((step) => step.thought);
 
+  // console.log('🔍 RAG DEBUG: ThoughtChain received ragContext:', ragContext?.length || 0, 'contexts');
+
   return (
     <div>
+      {/* Display RAG context at the top of the chain of thought */}
+      {ragContext && ragContext.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">
+              Knowledge Base Context
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {ragContext.map((ctx, index) => (
+              <div key={index} className="p-2 bg-white rounded border">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-3 w-3 text-gray-500" />
+                    <span className="text-xs text-gray-600">
+                      {ctx.source || 'Unknown'}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    Relevance: {ctx.relevance.toFixed(2)}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-700">
+                  <Markdown>{ctx.context}</Markdown>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {reflectionStep && (
         <div className="my-3 text-gray-600">
           <Markdown>{reflectionStep.reflection || ''}</Markdown>

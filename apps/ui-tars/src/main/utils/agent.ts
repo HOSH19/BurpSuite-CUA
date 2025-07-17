@@ -19,6 +19,7 @@ import {
 } from '../window/ScreenMarker';
 import { hideMainWindow, showMainWindow } from '../window';
 import { SearchEngine } from '@ui-tars/operator-browser';
+import { RAGService } from '../services/ragService';
 
 export const getModelVersion = (
   provider: VLMProviderV2 | undefined,
@@ -52,6 +53,54 @@ export const getSpByModelVersion = (
     default:
       return getSystemPrompt(language);
   }
+};
+
+// New function for enhanced system prompt with RAG integration
+export const getEnhancedSystemPrompt = async (
+  modelVersion: UITarsModelVersion,
+  language: 'zh' | 'en',
+  operatorType: 'browser' | 'computer',
+  instructions: string,
+): Promise<string> => {
+  // Get the base system prompt
+  const baseSystemPrompt = getSpByModelVersion(
+    modelVersion,
+    language,
+    operatorType,
+  );
+
+  // console.log('=== PROMPT DEBUG ===');
+  // console.log('📋 Base System Prompt:');
+  // console.log(baseSystemPrompt);
+  // console.log('\n' + '='.repeat(50) + '\n');
+
+  try {
+    // Get RAG context
+    const ragService = RAGService.getInstance();
+    const ragContext = await ragService.getRAGContext(instructions);
+
+    // console.log('🔍 RAG Context:');
+    // console.log(ragContext || '(No RAG context)');
+    // console.log('\n' + '='.repeat(50) + '\n');
+
+    // Combine base prompt with RAG context
+    if (ragContext) {
+      const finalPrompt = baseSystemPrompt + ragContext;
+      // console.log('🚀 FINAL PROMPT (Base + RAG):');
+      // console.log(finalPrompt);
+      // console.log('\n' + '='.repeat(50) + '\n');
+      return finalPrompt;
+    }
+  } catch (error) {
+    console.error('Failed to get RAG context:', error);
+    // Continue without RAG context if there's an error
+  }
+
+  // console.log('🚀 FINAL PROMPT (Base only, no RAG):');
+  // console.log(baseSystemPrompt);
+  // console.log('\n' + '='.repeat(50) + '\n');
+
+  return baseSystemPrompt;
 };
 
 export const getLocalBrowserSearchEngine = (

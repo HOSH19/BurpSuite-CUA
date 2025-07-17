@@ -10,6 +10,7 @@ import { Button } from '@renderer/components/ui/button';
 import { IMAGE_PLACEHOLDER } from '@ui-tars/shared/constants';
 import Prompts from '../Prompts';
 import ThoughtChain from '../ThoughtChain';
+
 import { api } from '@renderer/api';
 
 // import ChatInput from '@renderer/components/ChatInput';
@@ -36,10 +37,31 @@ const RunMessages = () => {
   const [selectImg, setSelectImg] = useState<number | undefined>(undefined);
   const { currentSessionId, chatMessages, updateMessages } = useSession();
   const isWelcome = currentSessionId === '';
+
+  // Debug: Log both message stores to see the difference
+  useEffect(() => {
+    // console.log('🔍 RAG DEBUG: Main store messages:', messages.length);
+    // console.log('🔍 RAG DEBUG: Session store chatMessages:', chatMessages.length);
+    // console.log('🔍 RAG DEBUG: currentSessionId:', currentSessionId);
+    messages.forEach((msg, idx) => {
+      if (msg.ragContext) {
+        // console.log(`🔍 RAG DEBUG: Main store message ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+      }
+    });
+    chatMessages.forEach((msg, idx) => {
+      if (msg.ragContext) {
+        // console.log(`🔍 RAG DEBUG: Session store message ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+      }
+    });
+  }, [messages.length, chatMessages.length]);
+
+  // Debug: Check if synchronization useEffect is being triggered
+  // console.log('🔍 RAG DEBUG: RunMessages render - currentSessionId:', currentSessionId, 'messages.length:', messages.length, 'chatMessages.length:', chatMessages.length);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isWelcome);
 
   // console.log('currentSessionId', currentSessionId);
   useEffect(() => {
+    // console.log('🔍 RAG DEBUG: Synchronization useEffect triggered - currentSessionId:', currentSessionId, 'messages.length:', messages.length);
     // console.log('useEffect updateMessages', currentSessionId, messages);
     if (currentSessionId && messages.length) {
       const existingMessagesSet = new Set(
@@ -53,9 +75,37 @@ const RunMessages = () => {
             `${msg.value}-${msg.from}-${msg.timing?.start}`,
           ),
       );
+
+      // Debug: Check if ragContext is preserved in newMessages
+      // console.log('🔍 RAG DEBUG: newMessages from main store:', newMessages.length);
+      newMessages.forEach((msg, idx) => {
+        if (msg.ragContext) {
+          // console.log(`🔍 RAG DEBUG: newMessage ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+        } else {
+          // console.log(`🔍 RAG DEBUG: newMessage ${idx} has NO ragContext`);
+        }
+      });
+
       const allMessages = [...chatMessages, ...newMessages];
 
+      // Debug: Check if ragContext is preserved in allMessages
+      // console.log('🔍 RAG DEBUG: allMessages before updateMessages:', allMessages.length);
+      allMessages.forEach((msg, idx) => {
+        if (msg.ragContext) {
+          // console.log(`🔍 RAG DEBUG: allMessage ${idx} HAS ragContext (${msg.ragContext.length} items)`);
+        } else {
+          // console.log(`🔍 RAG DEBUG: allMessage ${idx} has NO ragContext`);
+        }
+      });
+
       updateMessages(currentSessionId, allMessages);
+    } else {
+      console.log(
+        '🔍 RAG DEBUG: Synchronization skipped - currentSessionId:',
+        currentSessionId,
+        'messages.length:',
+        messages.length,
+      );
     }
   }, [currentSessionId, chatMessages.length, messages.length]);
 
@@ -135,6 +185,7 @@ const RunMessages = () => {
                     steps={predictionParsed}
                     hasSomImage={!!screenshotBase64WithElementMarker}
                     onClick={() => handleImageSelect(idx)}
+                    ragContext={message.ragContext}
                   />
                 ) : null}
 

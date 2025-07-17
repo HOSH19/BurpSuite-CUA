@@ -22,6 +22,7 @@ export default defineConfig({
       'process.env.UI_TARS_APP_PRIVATE_KEY_BASE64': JSON.stringify(
         process.env.UI_TARS_APP_PRIVATE_KEY_BASE64,
       ),
+      'process.env.INITIAL_ROUTE': JSON.stringify(process.env.INITIAL_ROUTE),
     },
     build: {
       outDir: 'dist/main',

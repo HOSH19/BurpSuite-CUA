@@ -264,6 +264,7 @@ const RemoteOperator = () => {
                     steps={predictionParsed}
                     hasSomImage={!!screenshotBase64WithElementMarker}
                     onClick={() => handleImageSelect(idx)}
+                    ragContext={message.ragContext}
                   />
                 ) : null}
 
