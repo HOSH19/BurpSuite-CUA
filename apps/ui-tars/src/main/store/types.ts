@@ -33,6 +33,7 @@ export type AppState = {
   abortController: AbortController | null;
   thinking: boolean;
   browserAvailable: boolean;
+  masterPlan?: string; // Store the generated master plan
 };
 
 export enum VlmProvider {

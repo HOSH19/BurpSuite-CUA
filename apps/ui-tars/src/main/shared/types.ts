@@ -11,4 +11,5 @@ export interface ConversationWithSoM extends Conversation {
     relevance: number;
     source?: string;
   }>;
+  isVerificationPrompt?: boolean; // Mark conversations with custom verification prompts
 }

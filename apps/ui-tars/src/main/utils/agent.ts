@@ -42,16 +42,19 @@ export const getSpByModelVersion = (
   modelVersion: UITarsModelVersion,
   language: 'zh' | 'en',
   operatorType: 'browser' | 'computer',
-) => {
+  masterPlan?: string,
+): string => {
   switch (modelVersion) {
-    case UITarsModelVersion.DOUBAO_1_5_20B:
-      return getSystemPromptDoubao_15_20B(language, operatorType);
-    case UITarsModelVersion.DOUBAO_1_5_15B:
-      return getSystemPromptDoubao_15_15B(language);
     case UITarsModelVersion.V1_5:
-      return getSystemPromptV1_5(language, 'normal');
+      return getSystemPromptV1_5(language, masterPlan);
+    case UITarsModelVersion.V1_0:
+      return getSystemPrompt(language, masterPlan);
+    case UITarsModelVersion.DOUBAO_1_5_15B:
+      return getSystemPromptDoubao_15_15B(language, masterPlan);
+    case UITarsModelVersion.DOUBAO_1_5_20B:
+      return getSystemPromptDoubao_15_20B(language, operatorType, masterPlan);
     default:
-      return getSystemPrompt(language);
+      return getSystemPrompt(language, masterPlan);
   }
 };
 
