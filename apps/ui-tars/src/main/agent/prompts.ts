@@ -6,30 +6,25 @@ import { NutJSElectronOperator } from './operator';
 
 export const generateMasterPlan = (
   language: 'zh' | 'en',
-) => `You are an expert at analyzing Burp Suite tasks and creating comprehensive strategic plans.
+) => `You are an expert at analyzing Burp Suite tasks and creating strategic plans.
 
-## Your Task
-Analyze the given Burp Suite task and create a detailed, step-by-step master plan. This plan will guide the execution of atomic GUI actions.
+## Task
+Create a step-by-step master plan for Burp Suite GUI actions.
 
-## Master Plan Requirements
-1. **Comprehensive**: Include all necessary steps from start to finish
-2. **Logical Order**: Ensure steps flow in the correct sequence
-3. **Atomic**: Each step should be a single, specific action
-4. **Burp Suite Focused**: All actions must be within Burp Suite
-5. **Clear Objectives**: Each step should have a clear purpose
+## Requirements
+- Each step = one atomic GUI action
+- All actions within Burp Suite
+- Use context if provided for accuracy
 
-## Output Format
-Return only the numbered master plan steps, one per line:
+## Output
+Return only numbered steps:
 
-1. [First atomic GUI action]
-2. [Second atomic GUI action]
-3. [Third atomic GUI action]
+1. [First action]
+2. [Second action]
+3. [Third action]
 ...
 
-## Language
-- Use ${language === 'zh' ? 'Chinese' : 'English'} for all text.
-
-## Task to Analyze
+Use ${language === 'zh' ? 'Chinese' : 'English'}.
 `;
 
 export const getSystemPrompt = (
@@ -39,22 +34,22 @@ export const getSystemPrompt = (
 
 ${
   masterPlan
-    ? `## MASTER PLAN (Your Strategic Guide)
+    ? `## MASTER PLAN
 ${masterPlan}
 
-## EXECUTION STRATEGY
-You must follow the master plan above while adapting to the current UI state:
-1. **Progress Check**: Review the screenshot and identify which steps from the master plan have been completed
-2. **Current State Analysis**: Determine the current UI state and what's visible
-3. **Next Action Selection**: Execute the next logical step from the master plan
-4. **Adaptation**: If the UI has changed unexpectedly, adapt while staying aligned with the master plan's objectives
+## STRATEGY
+Follow the master plan while adapting to current UI:
+1. Check progress - which steps completed?
+2. Analyze current UI state
+3. Execute next logical step
+4. Adapt if UI changes unexpectedly
 
-## PROGRESS VERIFICATION RULES
-- ✅ **Completed Steps**: Mark steps as completed only when you can visually confirm the expected outcome
-- ⏳ **Current Step**: Identify which step you're currently executing
-- 📋 **Remaining Steps**: Keep track of steps that still need to be completed
-- 🔄 **Adaptations**: Note any deviations from the master plan and explain why
-- 🎯 **CRITICAL**: Always reference the original numbered steps (1, 2, 3, etc.) from the master plan above
+## RULES
+- ✅ Mark steps complete only when visually confirmed
+- ⏳ Identify current step being executed
+- 📋 Track remaining steps
+- 🎯 Reference numbered steps (1, 2, 3, etc.)
+- 📚 Use context from master plan for decisions
 `
     : ''
 }
@@ -97,8 +92,9 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - Write a small plan and finally summarize your next action (with its target element) in one sentence in \`Thought\` part.
 ${
   masterPlan
-    ? `- **CRITICAL: Follow the master plan while adapting to current UI state.**
-- **CRITICAL: Always track progress and explain any deviations from the master plan.**`
+    ? `- **CRITICAL: Follow the enhanced master plan while adapting to current UI state.**
+- **CRITICAL: Always track progress and explain any deviations from the enhanced master plan.**
+- **CRITICAL: The master plan includes relevant context, so leverage it for better decision-making.**`
     : ''
 }
 
@@ -153,16 +149,17 @@ Your main goal is to take any high-level or ambiguous Burp Suite task descriptio
 
 ${
   masterPlan
-    ? `## MASTER PLAN (Your Strategic Guide)
+    ? `## ENHANCED MASTER PLAN (Your Strategic Guide with Context)
 ${masterPlan}
 
 ## EXECUTION STRATEGY
-You must follow the master plan above while adapting to the current UI state:
+You must follow the enhanced master plan above while adapting to the current UI state:
 1. **Progress Check**: Review the screenshot and identify which steps from the master plan have been completed
 2. **Current State Analysis**: Determine the current UI state and what's visible
 3. **Next Action Selection**: Execute the next logical step from the master plan
 4. **Adaptation**: If the UI has changed unexpectedly, adapt while staying aligned with the master plan's objectives
 5. **Progress Tracking**: Always track which steps are completed vs remaining
+6. **Context Utilization**: The master plan already includes relevant context, so use it to make informed decisions
 
 ## PROGRESS VERIFICATION RULES
 - ✅ **Completed Steps**: Mark steps as completed only when you can visually confirm the expected outcome
@@ -170,6 +167,7 @@ You must follow the master plan above while adapting to the current UI state:
 - 📋 **Remaining Steps**: Keep track of steps that still need to be completed
 - 🔄 **Adaptations**: Note any deviations from the master plan and explain why
 - 🎯 **CRITICAL**: Always reference the original numbered steps (1, 2, 3, etc.) from the master plan above
+- 📚 **Context-Aware**: The master plan incorporates relevant domain knowledge, so leverage it for better decision-making
 `
     : ''
 }
@@ -298,8 +296,9 @@ ${NutJSElectronOperator.MANUAL.ACTION_SPACES.join('\n')}
 - **CRITICAL: Check if you're already in the correct state before performing an action.**
 ${
   masterPlan
-    ? `- **CRITICAL: Follow the master plan while adapting to current UI state.**
-- **CRITICAL: Always track progress and explain any deviations from the master plan.**`
+    ? `- **CRITICAL: Follow the enhanced master plan while adapting to current UI state.**
+- **CRITICAL: Always track progress and explain any deviations from the enhanced master plan.**
+- **CRITICAL: The master plan includes relevant context, so leverage it for better decision-making.**`
     : ''
 }
 - Never combine multiple GUI actions into one step.

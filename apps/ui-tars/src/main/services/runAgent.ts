@@ -68,6 +68,11 @@ const logProgress = (thought: string, totalSteps: number): void => {
 // Generate master plan using LLM
 const generateMasterPlanWithLLM = async (
   instructions: string,
+  ragContextData: Array<{
+    context: string;
+    relevance: number;
+    source?: string;
+  }>,
   modelConfig: UITarsModelConfig,
   modelAuthHdrs: Record<string, string>,
   language: 'zh' | 'en',
@@ -80,20 +85,76 @@ const generateMasterPlanWithLLM = async (
       maxRetries: 1,
     });
 
+    // Build enhanced prompt with RAG context
+    let enhancedPrompt = `${generateMasterPlan(language)}\n\n`;
+
+    if (ragContextData.length > 0) {
+      logger.info(
+        `🔍 Adding ${ragContextData.length} RAG context items to master plan generation`,
+      );
+      enhancedPrompt += `## RELEVANT CONTEXT:\n`;
+      ragContextData.forEach((ctx, i) => {
+        // Truncate context to reduce token usage
+        const truncatedContext =
+          ctx.context.length > 200
+            ? ctx.context.substring(0, 200) + '...'
+            : ctx.context;
+        enhancedPrompt += `**Context ${i + 1}**: ${truncatedContext}\n`;
+        logger.debug(
+          `   Context ${i + 1}: ${ctx.context.substring(0, 100)}...`,
+        );
+      });
+      enhancedPrompt += `\n`;
+    } else {
+      logger.info(`🔍 No RAG context available for master plan generation`);
+    }
+
+    enhancedPrompt += `## TASK TO ANALYZE:\n${instructions}`;
+    logger.debug(
+      `📝 Enhanced prompt length: ${enhancedPrompt.length} characters`,
+    );
+
     const response = await openai.chat.completions.create({
       model: modelConfig.model,
       messages: [
         {
           role: 'user',
-          content: `${generateMasterPlan(language)}\n\n${instructions}`,
+          content: enhancedPrompt,
         },
       ],
-      max_tokens: 2000,
+      max_tokens: 1000, // Reduced from 2000 to 1000
       temperature: 0.3,
       ...modelAuthHdrs,
     });
 
-    return response.choices[0]?.message?.content?.trim() || null;
+    const masterPlan = response.choices[0]?.message?.content?.trim() || null;
+
+    if (masterPlan) {
+      logger.info(`✅ Enhanced master plan generated successfully`);
+      logger.debug(
+        `📋 Master plan preview: ${masterPlan.substring(0, 200)}...`,
+      );
+      logger.debug(
+        `📊 Master plan total length: ${masterPlan.length} characters`,
+      );
+
+      // Show how many steps were generated
+      const stepCount = masterPlan
+        .split('\n')
+        .filter((line) => line.trim().match(/^\d+\./)).length;
+      logger.info(`📋 Generated ${stepCount} steps in enhanced master plan`);
+
+      // Show if RAG context influenced the plan
+      if (ragContextData.length > 0) {
+        logger.info(
+          `🔍 Enhanced master plan incorporates ${ragContextData.length} RAG context items`,
+        );
+      }
+    } else {
+      logger.warn(`⚠️ Master plan generation returned empty response`);
+    }
+
+    return masterPlan;
   } catch (error) {
     logger.error('Master plan generation failed:', error);
     return null;
@@ -115,9 +176,20 @@ export const runAgent = async (
     source?: string;
   }> = [];
   try {
-    ragContextData = await RAGService.getInstance().queryRAG(instructions, 3);
-    if (ragContextData.length > 0)
-      logger.info(`📚 RAG: ${ragContextData.length} context items`);
+    logger.info(
+      `🔍 Querying RAG for context related to: "${instructions.substring(0, 50)}..."`,
+    );
+    ragContextData = await RAGService.getInstance().queryRAG(instructions, 2); // Reduced from 3 to 2
+    if (ragContextData.length > 0) {
+      logger.info(`📚 RAG: ${ragContextData.length} context items retrieved`);
+      ragContextData.forEach((ctx, i) => {
+        logger.debug(
+          `   RAG Context ${i + 1} (relevance: ${ctx.relevance}): ${ctx.context.substring(0, 80)}...`,
+        );
+      });
+    } else {
+      logger.info(`📚 RAG: No relevant context found`);
+    }
   } catch (error) {
     logger.error('RAG retrieval failed:', error);
   }
@@ -195,10 +267,11 @@ export const runAgent = async (
   let masterPlanStepCount = 0;
 
   if (!masterPlan) {
-    logger.info('🎯 Generating master plan...');
+    logger.info('🎯 Generating enhanced master plan with RAG context...');
     masterPlan =
       (await generateMasterPlanWithLLM(
         instructions,
+        ragContextData,
         modelConfig,
         modelAuthHdrs,
         settings.language ?? 'en',
@@ -209,29 +282,34 @@ export const runAgent = async (
       masterPlanStepCount = masterPlan
         .split('\n')
         .filter((line) => line.trim().match(/^\d+\./)).length;
-      logger.info(`📋 Master plan: ${masterPlanStepCount} steps generated`);
+      logger.info(
+        `📋 Enhanced master plan: ${masterPlanStepCount} steps generated with RAG context`,
+      );
     }
   } else {
-    logger.info('📋 Using cached master plan');
+    logger.info('📋 Using cached enhanced master plan');
     masterPlanStepCount = masterPlan
       .split('\n')
       .filter((line) => line.trim().match(/^\d+\./)).length;
   }
 
-  // Create system prompt with master plan and RAG context
-  let systemPrompt = getSpByModelVersion(
+  // Create system prompt with enhanced master plan (RAG context already included)
+  const systemPrompt = getSpByModelVersion(
     modelVersion,
     settings.language ?? 'en',
     operatorType,
     masterPlan || undefined,
   );
 
-  // Append RAG context if available
-  if (ragContextData.length > 0) {
-    const ragContext = ragContextData
-      .map((ctx, i) => `**Context ${i + 1}**: ${ctx.context}`)
-      .join('\n');
-    systemPrompt += `\n\n## RELEVANT CONTEXT:\n${ragContext}`;
+  if (masterPlan) {
+    logger.info(
+      `🎯 Using enhanced master plan in system prompt (${masterPlan.split('\n').filter((line) => line.trim().match(/^\d+\./)).length} steps)`,
+    );
+    logger.debug(
+      `📋 System prompt includes enhanced master plan with RAG context`,
+    );
+  } else {
+    logger.info(`🎯 No master plan available, using standard system prompt`);
   }
 
   // Simplified handleData function with action verification
@@ -249,10 +327,20 @@ export const runAgent = async (
         conv.predictionParsed?.[0]?.thought
       ) {
         logProgress(conv.predictionParsed[0].thought, masterPlanStepCount);
+
+        // Debug: Show when enhanced master plan is being referenced
+        if (
+          conv.predictionParsed[0].thought.includes('Step') ||
+          conv.predictionParsed[0].thought.includes('PROGRESS TRACKING')
+        ) {
+          logger.debug(
+            `📋 Enhanced master plan being referenced in execution step`,
+          );
+        }
       }
     });
 
-    // Process conversations with markers and RAG context
+    // Process conversations with markers and RAG context for UI display
     const conversationsWithSoM: ConversationWithSoM[] = await Promise.all(
       conversations.map(async (conv) => {
         const screenshotBase64WithElementMarker =
@@ -269,7 +357,7 @@ export const runAgent = async (
         return {
           ...conv,
           screenshotBase64WithElementMarker,
-          ragContext: ragContextData.length > 0 ? ragContextData : undefined,
+          ragContext: ragContextData.length > 0 ? ragContextData : undefined, // Add RAG context for UI display
         };
       }),
     ).catch(() => conversations);
@@ -308,6 +396,15 @@ export const runAgent = async (
     onData: handleData,
     onError: (params) => {
       logger.error('GUIAgent error:', params.error);
+
+      // Handle rate limiting specifically
+      if (params.error?.message?.includes('429')) {
+        logger.warn('⚠️ Rate limit hit - the system will retry automatically');
+        logger.info(
+          '💡 Consider waiting a moment or checking your API rate limits',
+        );
+      }
+
       setState({
         ...getState(),
         status: StatusEnum.ERROR,
@@ -332,6 +429,19 @@ export const runAgent = async (
   GUIAgentManager.getInstance().setAgent(guiAgent);
   UTIOService.getInstance().sendInstruction(instructions);
   beforeAgentRun(settings.operator);
+
+  // Log flow summary
+  logger.info(`🔄 HYBRID FLOW SUMMARY:`);
+  logger.info(`   1. ✅ RAG Context: ${ragContextData.length} items retrieved`);
+  logger.info(
+    `   2. ✅ Enhanced Master Plan: ${masterPlan ? 'Generated with RAG context' : 'Not available'}`,
+  );
+  logger.info(
+    `   3. ✅ System Prompt: ${masterPlan ? 'Includes enhanced master plan' : 'Standard prompt'}`,
+  );
+  logger.info(
+    `   4. 🚀 Ready for execution with ${masterPlanStepCount} planned steps`,
+  );
 
   // Run the agent
   const startTime = Date.now();
